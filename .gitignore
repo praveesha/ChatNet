@@ -1,0 +1,14 @@
+# Ignore compiled class files
+*.class
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+
+# Ignore IDE stuff (VSCode, IntelliJ)
+.vscode/
+.idea/
+out/
+target/
