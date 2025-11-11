@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Chat</h2>
+<div id="messages" style="border:1px solid #aaa;height:200px;overflow:auto;"></div>
+<input id="msg"><button id="send">Send</button>
+
+<h2>Files</h2>
+<ul id="fileList"></ul>
+
+<script>
+const ws = new WebSocket("ws://localhost:8080/ws/chat");
+ws.onmessage = e => document.getElementById("messages").innerHTML += `<div>${e.data}</div>`;
+document.getElementById("send").onclick = () => {
+    ws.send(document.getElementById("msg").value);
+    document.getElementById("msg").value = "";
+};
+
+fetch("http://localhost:8080/api/files")
+    .then(r => r.json())
+    .then(list => document.getElementById("fileList").innerHTML = list.map(f => `<li>${f}</li>`).join(''));
+</script>
+</body>
+</html>
