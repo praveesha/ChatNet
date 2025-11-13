@@ -173,7 +173,62 @@ public class ChatClientFX extends Application {
             return;
         }
         if (message.startsWith(username + ":")) return;
+        if (message.startsWith("[File Uploaded]")) {
+            String fileName = message.replace("[File Uploaded]", "").trim();
+            addFileMessage(fileName);
+            return;
+        }
         addMessageBubble(message, false);
+
+    }
+
+    private void addFileMessage(String fileName) {
+        Hyperlink fileLink = new Hyperlink("📁 " + fileName);
+        fileLink.setOnAction(e -> downloadFile(fileName));
+        fileLink.setStyle("-fx-font-size: 13px; -fx-text-fill: #1565C0;");
+
+        HBox box = new HBox(fileLink);
+        box.setAlignment(Pos.CENTER_LEFT);
+        chatBox.getChildren().add(box);
+    }
+
+    private void downloadFile(String fileName) {
+        FileChooser chooser = new FileChooser();
+        chooser.setInitialFileName(fileName);
+        chooser.setTitle("Save File");
+        File saveFile = chooser.showSaveDialog(null);
+        if (saveFile == null) return;
+
+        new Thread(() -> {
+            try (Socket socket = new Socket("localhost", 12346);
+                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                 DataInputStream dis = new DataInputStream(socket.getInputStream());
+                 FileOutputStream fos = new FileOutputStream(saveFile)) {
+
+                // send request (new protocol type)
+                dos.writeUTF("DOWNLOAD");
+                dos.writeUTF(fileName);
+
+                String response = dis.readUTF();
+                if (!response.equals("OK")) {
+                    Platform.runLater(() -> showAlert("Download Error", "File not found on server."));
+                    return;
+                }
+
+                long fileSize = dis.readLong();
+                byte[] buffer = new byte[4096];
+                int read;
+                long remaining = fileSize;
+                while (remaining > 0 && (read = dis.read(buffer, 0, (int)Math.min(buffer.length, remaining))) != -1) {
+                    fos.write(buffer, 0, read);
+                    remaining -= read;
+                }
+
+                Platform.runLater(() -> addSystemMessage("Downloaded: " + fileName));
+            } catch (IOException e) {
+                Platform.runLater(() -> showAlert("Download Failed", e.getMessage()));
+            }
+        }).start();
     }
 
     private void addMessageBubble(String message, boolean isOwn) {
@@ -228,9 +283,12 @@ public class ChatClientFX extends Application {
         new Thread(() -> {
             try (Socket fileSocket = new Socket("localhost", 12346);
                  FileInputStream fis = new FileInputStream(file);
-                 OutputStream os = fileSocket.getOutputStream();
-                 DataOutputStream dos = new DataOutputStream(os)) {
+                 DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
+                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream())) {
 
+                // Tell server we're uploading
+                dos.writeUTF("UPLOAD");
+                // Send filename and size
                 dos.writeUTF(file.getName());
                 dos.writeLong(file.length());
 
@@ -239,10 +297,17 @@ public class ChatClientFX extends Application {
                 while ((read = fis.read(buffer)) > 0) {
                     dos.write(buffer, 0, read);
                 }
+                dos.flush();
+
+                // Wait for server response
+                String response = dis.readUTF();
+                System.out.println("FileServer response: " + response);
 
                 Platform.runLater(() -> addSystemMessage("File sent: " + file.getName()));
+
             } catch (IOException e) {
-                Platform.runLater(() -> showAlert("File Transfer Error", "Could not send file."));
+                e.printStackTrace();
+                Platform.runLater(() -> showAlert("File Transfer Error", "Could not send file: " + e.getMessage()));
             }
         }).start();
     }

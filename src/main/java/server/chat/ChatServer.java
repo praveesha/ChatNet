@@ -35,6 +35,12 @@ public class ChatServer {
             if (client != sender) { // don't send to sender
                 client.sendMessage(message);
             }
+            if (message.startsWith("[SERVER_FILE]")) {
+                String fileName = message.replace("[SERVER_FILE]", "").trim();
+                broadcast("[File Uploaded] " + fileName, null);
+                continue;
+            }
+
         }
     }
 }

@@ -1,4 +1,4 @@
-package src.main.java.client.chat_client;
+package client.chat_client;
 
 import java.io.*;
 import java.net.*;

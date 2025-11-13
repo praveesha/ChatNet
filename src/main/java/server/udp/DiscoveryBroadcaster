@@ -1,0 +1,29 @@
+package server.udp;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class DiscoveryBroadcaster {
+
+    private static final int PORT = 12347; // UDP port for discovery
+    private static final int INTERVAL = 3000; // broadcast every 3 seconds
+
+    public static void main(String[] args) {
+        try (DatagramSocket socket = new DatagramSocket()) {
+            InetAddress group = InetAddress.getByName("255.255.255.255"); // broadcast address
+
+            System.out.println("UDP Discovery broadcaster started...");
+
+            while (true) {
+                String message = "SERVER_ONLINE";
+                byte[] buffer = message.getBytes();
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                socket.send(packet);
+                Thread.sleep(INTERVAL);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
