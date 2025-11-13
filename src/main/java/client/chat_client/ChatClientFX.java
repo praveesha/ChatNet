@@ -32,6 +32,9 @@ public class ChatClientFX extends Application {
     private boolean typing = false;
     private long lastTypedTime = 0;
 
+    // Track the last file uploaded by this client
+    private String lastUploadedFileName = "";
+
     @Override
     public void start(Stage primaryStage) {
         // Username dialog
@@ -81,7 +84,7 @@ public class ChatClientFX extends Application {
 
         // Typing detection
         messageInput.textProperty().addListener((obs, oldText, newText) -> {
-            if (!typing) {
+            if (!typing && out != null) {
                 typing = true;
                 out.println(username + " is typing...");
             }
@@ -91,7 +94,7 @@ public class ChatClientFX extends Application {
                     Thread.sleep(1500);
                     if (System.currentTimeMillis() - lastTypedTime >= 1500) {
                         typing = false;
-                        out.println(username + " stopped typing");
+                        if (out != null) out.println(username + " stopped typing");
                     }
                 } catch (InterruptedException ignored) {}
             }).start();
@@ -157,10 +160,10 @@ public class ChatClientFX extends Application {
     }
 
     private void handleIncomingMessage(String message) {
-        if (message.contains("joined the chat") || message.contains("left the chat")) {
-            addSystemMessage(message);
-            return;
-        }
+        // Ignore your own messages
+        if (message.startsWith(username + ":")) return;
+
+        // Typing notifications
         if (message.endsWith("is typing...")) {
             if (!message.startsWith(username)) {
                 typingLabel.setText("💭 " + message);
@@ -172,63 +175,24 @@ public class ChatClientFX extends Application {
             typingLabel.setVisible(false);
             return;
         }
-        if (message.startsWith(username + ":")) return;
-        if (message.startsWith("[File Uploaded]")) {
-            String fileName = message.replace("[File Uploaded]", "").trim();
-            addFileMessage(fileName);
+
+        // Server file notifications
+        if (message.startsWith("[SERVER_FILE] ")) {
+            String fileName = message.replace("[SERVER_FILE] ", "");
+            if (!fileName.equals(lastUploadedFileName)) {
+                addFileMessage(fileName, false); // left-aligned
+            }
             return;
         }
+
+        // Join/leave messages
+        if (message.contains("joined the chat") || message.contains("left the chat")) {
+            addSystemMessage(message);
+            return;
+        }
+
+        // Normal chat messages
         addMessageBubble(message, false);
-
-    }
-
-    private void addFileMessage(String fileName) {
-        Hyperlink fileLink = new Hyperlink("📁 " + fileName);
-        fileLink.setOnAction(e -> downloadFile(fileName));
-        fileLink.setStyle("-fx-font-size: 13px; -fx-text-fill: #1565C0;");
-
-        HBox box = new HBox(fileLink);
-        box.setAlignment(Pos.CENTER_LEFT);
-        chatBox.getChildren().add(box);
-    }
-
-    private void downloadFile(String fileName) {
-        FileChooser chooser = new FileChooser();
-        chooser.setInitialFileName(fileName);
-        chooser.setTitle("Save File");
-        File saveFile = chooser.showSaveDialog(null);
-        if (saveFile == null) return;
-
-        new Thread(() -> {
-            try (Socket socket = new Socket("localhost", 12346);
-                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                 DataInputStream dis = new DataInputStream(socket.getInputStream());
-                 FileOutputStream fos = new FileOutputStream(saveFile)) {
-
-                // send request (new protocol type)
-                dos.writeUTF("DOWNLOAD");
-                dos.writeUTF(fileName);
-
-                String response = dis.readUTF();
-                if (!response.equals("OK")) {
-                    Platform.runLater(() -> showAlert("Download Error", "File not found on server."));
-                    return;
-                }
-
-                long fileSize = dis.readLong();
-                byte[] buffer = new byte[4096];
-                int read;
-                long remaining = fileSize;
-                while (remaining > 0 && (read = dis.read(buffer, 0, (int)Math.min(buffer.length, remaining))) != -1) {
-                    fos.write(buffer, 0, read);
-                    remaining -= read;
-                }
-
-                Platform.runLater(() -> addSystemMessage("Downloaded: " + fileName));
-            } catch (IOException e) {
-                Platform.runLater(() -> showAlert("Download Failed", e.getMessage()));
-            }
-        }).start();
     }
 
     private void addMessageBubble(String message, boolean isOwn) {
@@ -256,6 +220,59 @@ public class ChatClientFX extends Application {
         chatBox.getChildren().add(msgContainer);
     }
 
+    private void addFileMessage(String fileName, boolean isOwn) {
+        Hyperlink fileLink = new Hyperlink("📁 " + fileName);
+        fileLink.setOnAction(e -> downloadFile(fileName));
+
+        HBox box = new HBox(fileLink);
+        box.setAlignment(isOwn ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+        chatBox.getChildren().add(box);
+    }
+
+    private void downloadFile(String fileName) {
+        Platform.runLater(() -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Save " + fileName + " as...");
+            chooser.setInitialFileName(fileName);
+            File saveFile = chooser.showSaveDialog(null);
+
+            if (saveFile == null) {
+                return; // user canceled
+            }
+
+            new Thread(() -> {
+                try (Socket fileSocket = new Socket("localhost", 12346);
+                     DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
+                     DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
+                     FileOutputStream fos = new FileOutputStream(saveFile)) {
+
+                    dos.writeUTF("DOWNLOAD");
+                    dos.writeUTF(fileName);
+
+                    String response = dis.readUTF();
+                    if ("ERROR".equals(response)) {
+                        Platform.runLater(() -> showAlert("Download Error", "File not found on server."));
+                        return;
+                    }
+
+                    long fileSize = dis.readLong();
+                    byte[] buffer = new byte[4096];
+                    int read;
+                    long remaining = fileSize;
+                    while (remaining > 0 && (read = dis.read(buffer, 0, (int)Math.min(buffer.length, remaining))) != -1) {
+                        fos.write(buffer, 0, read);
+                        remaining -= read;
+                    }
+
+                    Platform.runLater(() -> addSystemMessage("Downloaded: " + saveFile.getName()));
+
+                } catch (IOException e) {
+                    Platform.runLater(() -> showAlert("Download Failed", e.getMessage()));
+                }
+            }).start();
+        });
+    }
+
     private void addSystemMessage(String message) {
         Label systemLabel = new Label(message);
         systemLabel.setStyle("-fx-font-style: italic; -fx-text-fill: gray;");
@@ -273,22 +290,20 @@ public class ChatClientFX extends Application {
         alert.showAndWait();
     }
 
-    // FILE TRANSFER FUNCTION
     private void sendFile() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select a file to send");
         File file = chooser.showOpenDialog(null);
         if (file == null) return;
 
+        lastUploadedFileName = file.getName(); // track your own file
+
         new Thread(() -> {
             try (Socket fileSocket = new Socket("localhost", 12346);
                  FileInputStream fis = new FileInputStream(file);
-                 DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
-                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream())) {
+                 OutputStream os = fileSocket.getOutputStream();
+                 DataOutputStream dos = new DataOutputStream(os)) {
 
-                // Tell server we're uploading
-                dos.writeUTF("UPLOAD");
-                // Send filename and size
                 dos.writeUTF(file.getName());
                 dos.writeLong(file.length());
 
@@ -297,16 +312,10 @@ public class ChatClientFX extends Application {
                 while ((read = fis.read(buffer)) > 0) {
                     dos.write(buffer, 0, read);
                 }
-                dos.flush();
 
-                // Wait for server response
-                String response = dis.readUTF();
-                System.out.println("FileServer response: " + response);
-
-                Platform.runLater(() -> addSystemMessage("File sent: " + file.getName()));
+                Platform.runLater(() -> addFileMessage(file.getName(), true));
 
             } catch (IOException e) {
-                e.printStackTrace();
                 Platform.runLater(() -> showAlert("File Transfer Error", "Could not send file: " + e.getMessage()));
             }
         }).start();
