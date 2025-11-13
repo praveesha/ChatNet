@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -19,7 +20,7 @@ public class ChatClientFX extends Application {
     private VBox chatBox;
     private ScrollPane scrollPane;
     private TextField messageInput;
-    private Button sendButton;
+    private Button sendButton, fileButton;
     private Label typingLabel;
 
     private Socket socket;
@@ -44,14 +45,12 @@ public class ChatClientFX extends Application {
         // Header bar
         Label titleLabel = new Label("💬 " + username);
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
-
         Label statusLabel = new Label("🟢 Online");
         statusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #D0F0C0;");
 
         VBox header = new VBox(2, titleLabel, statusLabel);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(10));
-
         HBox headerContainer = new HBox(header);
         headerContainer.setAlignment(Pos.CENTER_LEFT);
         headerContainer.setStyle("-fx-background-color: linear-gradient(to right, #1976D2, #42A5F5);");
@@ -64,17 +63,12 @@ public class ChatClientFX extends Application {
         scrollPane = new ScrollPane(chatBox);
         scrollPane.setFitToWidth(true);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("""
-            -fx-background: transparent;
-                -fx-background-color: transparent;
-                -fx-border-color: transparent;
-        """);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;");
 
         // Typing label
         typingLabel = new Label();
         typingLabel.setStyle("-fx-font-style: italic; -fx-text-fill: gray;");
         typingLabel.setVisible(false);
-
         HBox typingContainer = new HBox(typingLabel);
         typingContainer.setAlignment(Pos.CENTER_LEFT);
         typingContainer.setPadding(new Insets(5, 10, 5, 15));
@@ -82,24 +76,16 @@ public class ChatClientFX extends Application {
         // Message input bar
         messageInput = new TextField();
         messageInput.setPromptText("Type a message...");
-        messageInput.setPrefWidth(330);
-        messageInput.setStyle("""
-            -fx-background-color: #FAFAFA;
-            -fx-border-color: #BDBDBD;
-            -fx-border-radius: 20;
-            -fx-background-radius: 20;
-            -fx-padding: 8 15 8 15;
-        """);
+        messageInput.setPrefWidth(250);
+        messageInput.setStyle("-fx-background-color: #FAFAFA; -fx-border-color: #BDBDBD; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 8 15 8 15;");
 
-        // Detect typing
+        // Typing detection
         messageInput.textProperty().addListener((obs, oldText, newText) -> {
             if (!typing) {
                 typing = true;
                 out.println(username + " is typing...");
             }
             lastTypedTime = System.currentTimeMillis();
-
-            // Stop typing if idle for 1.5s
             new Thread(() -> {
                 try {
                     Thread.sleep(1500);
@@ -113,17 +99,16 @@ public class ChatClientFX extends Application {
 
         messageInput.setOnAction(e -> sendMessage());
 
+        // Buttons
         sendButton = new Button("Send");
-        sendButton.setStyle("""
-            -fx-background-color: linear-gradient(to right, #2196F3, #64B5F6);
-            -fx-text-fill: white;
-            -fx-font-weight: bold;
-            -fx-background-radius: 20;
-            -fx-padding: 8 15 8 15;
-        """);
+        sendButton.setStyle("-fx-background-color: linear-gradient(to right, #2196F3, #64B5F6); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 8 15 8 15;");
         sendButton.setOnAction(e -> sendMessage());
 
-        HBox inputBox = new HBox(10, messageInput, sendButton);
+        fileButton = new Button("📎");
+        fileButton.setStyle("-fx-font-size: 14px; -fx-background-radius: 20;");
+        fileButton.setOnAction(e -> sendFile());
+
+        HBox inputBox = new HBox(10, messageInput, sendButton, fileButton);
         inputBox.setAlignment(Pos.CENTER);
         inputBox.setPadding(new Insets(10));
         inputBox.setStyle("-fx-background-color: #ECEFF1; -fx-border-color: #CFD8DC;");
@@ -136,11 +121,9 @@ public class ChatClientFX extends Application {
         root.setBottom(inputBox);
         root.setStyle("-fx-background-color: white;");
 
-        Scene scene = new Scene(root, 470, 540);
-        scene.getRoot().setStyle("""
-            -fx-background-color: linear-gradient(to bottom right, #E3F2FD, #FFF9C4);
-        """);
-        primaryStage.setTitle("Chat - " + username);
+        Scene scene = new Scene(root, 500, 550);
+        scene.getRoot().setStyle("-fx-background-color: linear-gradient(to bottom right, #E3F2FD, #FFF9C4);");
+        primaryStage.setTitle("TeamSync - " + username);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -152,7 +135,6 @@ public class ChatClientFX extends Application {
             socket = new Socket("localhost", 12345);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-
             out.println(username + " joined the chat");
 
             String message;
@@ -165,12 +147,20 @@ public class ChatClientFX extends Application {
         }
     }
 
+    private void sendMessage() {
+        String text = messageInput.getText().trim();
+        if (text.isEmpty() || out == null) return;
+        String formatted = username + ": " + text;
+        out.println(formatted);
+        addMessageBubble(formatted, true);
+        messageInput.clear();
+    }
+
     private void handleIncomingMessage(String message) {
         if (message.contains("joined the chat") || message.contains("left the chat")) {
             addSystemMessage(message);
             return;
         }
-
         if (message.endsWith("is typing...")) {
             if (!message.startsWith(username)) {
                 typingLabel.setText("💭 " + message);
@@ -178,25 +168,12 @@ public class ChatClientFX extends Application {
             }
             return;
         }
-
         if (message.endsWith("stopped typing")) {
             typingLabel.setVisible(false);
             return;
         }
-
         if (message.startsWith(username + ":")) return;
-
         addMessageBubble(message, false);
-    }
-
-    private void sendMessage() {
-        String text = messageInput.getText().trim();
-        if (text.isEmpty() || out == null) return;
-
-        String formatted = username + ": " + text;
-        out.println(formatted);
-        addMessageBubble(formatted, true);
-        messageInput.clear();
     }
 
     private void addMessageBubble(String message, boolean isOwn) {
@@ -208,15 +185,12 @@ public class ChatClientFX extends Application {
         bubble.setWrapText(true);
         bubble.setPadding(new Insets(10, 14, 10, 14));
         bubble.setMaxWidth(280);
-        bubble.setStyle(
-                "-fx-background-radius: 18;" +
-                        (isOwn
-                                ? "-fx-background-color: linear-gradient(to right, #42A5F5, #90CAF9); -fx-text-fill: white;"
-                                : "-fx-background-color: #F8BBD0; -fx-text-fill: black;")
-        );
+        bubble.setStyle("-fx-background-radius: 18;" +
+                (isOwn
+                        ? "-fx-background-color: linear-gradient(to right, #42A5F5, #90CAF9); -fx-text-fill: white;"
+                        : "-fx-background-color: #F8BBD0; -fx-text-fill: black;"));
 
-        String time = LocalTime.now().format(timeFormatter);
-        Label timeLabel = new Label(time);
+        Label timeLabel = new Label(LocalTime.now().format(timeFormatter));
         timeLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: gray;");
 
         Label nameLabel = new Label(sender);
@@ -232,7 +206,6 @@ public class ChatClientFX extends Application {
         systemLabel.setStyle("-fx-font-style: italic; -fx-text-fill: gray;");
         systemLabel.setAlignment(Pos.CENTER);
         systemLabel.setMaxWidth(Double.MAX_VALUE);
-
         HBox container = new HBox(systemLabel);
         container.setAlignment(Pos.CENTER);
         chatBox.getChildren().add(container);
@@ -243,6 +216,35 @@ public class ChatClientFX extends Application {
         alert.setTitle(title);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // FILE TRANSFER FUNCTION
+    private void sendFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Select a file to send");
+        File file = chooser.showOpenDialog(null);
+        if (file == null) return;
+
+        new Thread(() -> {
+            try (Socket fileSocket = new Socket("localhost", 12346);
+                 FileInputStream fis = new FileInputStream(file);
+                 OutputStream os = fileSocket.getOutputStream();
+                 DataOutputStream dos = new DataOutputStream(os)) {
+
+                dos.writeUTF(file.getName());
+                dos.writeLong(file.length());
+
+                byte[] buffer = new byte[4096];
+                int read;
+                while ((read = fis.read(buffer)) > 0) {
+                    dos.write(buffer, 0, read);
+                }
+
+                Platform.runLater(() -> addSystemMessage("File sent: " + file.getName()));
+            } catch (IOException e) {
+                Platform.runLater(() -> showAlert("File Transfer Error", "Could not send file."));
+            }
+        }).start();
     }
 
     @Override
