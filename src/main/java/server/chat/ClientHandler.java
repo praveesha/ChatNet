@@ -11,32 +11,44 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
+
         try {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new PrintWriter(socket.getOutputStream(), true);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public void run() {
-        String message;
         try {
+
+            String message;
+
             while ((message = reader.readLine()) != null) {
-                System.out.println("Received: " + message);
-                ChatServer.broadcast(message, this);
+
+                if (message.startsWith("[FILE_NOTIFY]")) {
+                    String[] parts = message.split(" ", 3);
+                    String username = parts[1];
+                    String fileName = parts[2];
+
+                    ChatServer.broadcastFile(username, fileName);
+                } else {
+                    ChatServer.broadcast(message, this);
+                }
             }
+
         } catch (IOException e) {
-            e.printStackTrace();
+
         } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {}
+            try { socket.close(); } catch (IOException ignored) {}
         }
     }
 
-    public void sendMessage(String message) {
-        writer.println(message);
+    public void sendMessage(String msg) {
+        writer.println(msg);
     }
 }

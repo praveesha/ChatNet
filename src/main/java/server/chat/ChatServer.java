@@ -6,22 +6,18 @@ import java.util.*;
 
 public class ChatServer {
 
-    private static Set<ClientHandler> clientHandlers = new HashSet<>();
-    private static final int PORT = 12345; // you can choose any free port
+    static Set<ClientHandler> clientHandlers = new HashSet<>();
+    private static final int PORT = 12345;
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Chat server started on port " + PORT);
+            System.out.println("Chat server running...");
 
             while (true) {
-                Socket clientSocket = serverSocket.accept(); // waits for a client
-                System.out.println("New client connected: " + clientSocket);
-
-                ClientHandler handler = new ClientHandler(clientSocket);
+                Socket client = serverSocket.accept();
+                ClientHandler handler = new ClientHandler(client);
                 clientHandlers.add(handler);
-
-                Thread thread = new Thread(handler);
-                thread.start();
+                new Thread(handler).start();
             }
 
         } catch (IOException e) {
@@ -29,18 +25,20 @@ public class ChatServer {
         }
     }
 
-    // Helper method to broadcast message to all clients
-    public static void broadcast(String message, ClientHandler sender) {
-        for (ClientHandler client : clientHandlers) {
-            if (client != sender) { // don't send to sender
-                client.sendMessage(message);
-            }
-            if (message.startsWith("[SERVER_FILE]")) {
-                String fileName = message.replace("[SERVER_FILE]", "").trim();
-                broadcast("[File Uploaded] " + fileName, null);
-                continue;
-            }
 
+    public static void broadcast(String msg, ClientHandler sender) {
+        for (ClientHandler c : clientHandlers) {
+            if (c != sender) {
+                c.sendMessage(msg);
+            }
+        }
+    }
+
+    public static void broadcastFile(String username, String fileName) {
+        String formatted = username + ": [FILE] " + fileName;
+
+        for (ClientHandler c : clientHandlers) {
+            c.sendMessage(formatted);
         }
     }
 }
