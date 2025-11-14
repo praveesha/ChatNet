@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.StatsController">
+   <top>
+      <!-- Control Panel -->
+      <VBox spacing="10" styleClass="control-panel">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10" />
+         </padding>
+         
+         <!-- Echo Test Controls -->
+         <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="NIO Echo Test:" styleClass="section-header" />
+            <TextField fx:id="echoServerAddressField" text="localhost" prefWidth="100" />
+            <Label text=":" />
+            <TextField fx:id="echoServerPortField" text="9090" prefWidth="60" />
+            <Button fx:id="startEchoTestButton" text="▶ Start Test" styleClass="success-button" onAction="#startEchoTest" />
+            <Button fx:id="stopEchoTestButton" text="⏸ Stop Test" styleClass="danger-button" onAction="#stopEchoTest" />
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <ProgressIndicator fx:id="testingIndicator" prefWidth="20" prefHeight="20" />
+            <Button fx:id="resetStatsButton" text="🔄 Reset" styleClass="warning-button" onAction="#resetStatistics" />
+         </HBox>
+      </VBox>
+   </top>
+   
+   <center>
+      <SplitPane dividerPositions="0.6" orientation="VERTICAL">
+         <items>
+            <!-- Statistics Grid -->
+            <ScrollPane fitToWidth="true" fitToHeight="true">
+               <VBox spacing="15">
+                  <padding>
+                     <Insets top="10" right="10" bottom="10" left="10" />
+                  </padding>
+                  
+                  <!-- Message Statistics -->
+                  <VBox spacing="8">
+                     <Label text="Message Statistics:" styleClass="section-header" />
+                     <GridPane hgap="20" vgap="10" styleClass="stats-grid">
+                        <columnConstraints>
+                           <ColumnConstraints hgrow="NEVER" minWidth="120" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="120" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                        </columnConstraints>
+                        
+                        <Label text="Messages Sent:" GridPane.columnIndex="0" GridPane.rowIndex="0" 
+                              styleClass="stat-label" />
+                        <Label fx:id="messagesSentLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0" 
+                              styleClass="stat-value primary" />
+                        
+                        <Label text="Messages Received:" GridPane.columnIndex="2" GridPane.rowIndex="0" 
+                              styleClass="stat-label" />
+                        <Label fx:id="messagesReceivedLabel" text="0" GridPane.columnIndex="3" GridPane.rowIndex="0" 
+                              styleClass="stat-value success" />
+                        
+                        <Label text="UDP Packets:" GridPane.columnIndex="0" GridPane.rowIndex="1" 
+                              styleClass="stat-label" />
+                        <Label fx:id="packetsReceivedLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" 
+                              styleClass="stat-value info" />
+                        
+                        <Label text="Data Transferred:" GridPane.columnIndex="2" GridPane.rowIndex="1" 
+                              styleClass="stat-label" />
+                        <Label fx:id="transferRateLabel" text="0 B" GridPane.columnIndex="3" GridPane.rowIndex="1" 
+                              styleClass="stat-value warning" />
+                     </GridPane>
+                  </VBox>
+                  
+                  <Separator />
+                  
+                  <!-- Latency Statistics -->
+                  <VBox spacing="8">
+                     <Label text="Network Latency:" styleClass="section-header" />
+                     <GridPane hgap="20" vgap="10" styleClass="stats-grid">
+                        <columnConstraints>
+                           <ColumnConstraints hgrow="NEVER" minWidth="120" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="120" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                        </columnConstraints>
+                        
+                        <Label text="Average Latency:" GridPane.columnIndex="0" GridPane.rowIndex="0" 
+                              styleClass="stat-label" />
+                        <Label fx:id="avgLatencyLabel" text="--" GridPane.columnIndex="1" GridPane.rowIndex="0" 
+                              styleClass="stat-value primary" />
+                        
+                        <Label text="Min Latency:" GridPane.columnIndex="2" GridPane.rowIndex="0" 
+                              styleClass="stat-label" />
+                        <Label fx:id="minLatencyLabel" text="--" GridPane.columnIndex="3" GridPane.rowIndex="0" 
+                              styleClass="stat-value success" />
+                        
+                        <Label text="Max Latency:" GridPane.columnIndex="0" GridPane.rowIndex="1" 
+                              styleClass="stat-label" />
+                        <Label fx:id="maxLatencyLabel" text="--" GridPane.columnIndex="1" GridPane.rowIndex="1" 
+                              styleClass="stat-value danger" />
+                     </GridPane>
+                  </VBox>
+               </VBox>
+            </ScrollPane>
+            
+            <!-- Charts and Logs -->
+            <SplitPane dividerPositions="0.7" orientation="HORIZONTAL">
+               <items>
+                  <!-- Latency Chart -->
+                  <VBox spacing="10">
+                     <padding>
+                        <Insets top="10" right="5" bottom="10" left="10" />
+                     </padding>
+                     
+                     <Label text="Latency Chart:" styleClass="section-header" />
+                     <LineChart fx:id="latencyChart" styleClass="latency-chart" VBox.vgrow="ALWAYS">
+                        <xAxis>
+                           <NumberAxis side="BOTTOM" />
+                        </xAxis>
+                        <yAxis>
+                           <NumberAxis side="LEFT" />
+                        </yAxis>
+                     </LineChart>
+                  </VBox>
+                  
+                  <!-- Statistics Log -->
+                  <VBox spacing="10">
+                     <padding>
+                        <Insets top="10" right="10" bottom="10" left="5" />
+                     </padding>
+                     
+                     <Label text="Statistics Log:" styleClass="section-header" />
+                     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                        <TextArea fx:id="statsLogArea" editable="false" wrapText="true" 
+                                 styleClass="stats-log" prefHeight="150" />
+                     </ScrollPane>
+                  </VBox>
+               </items>
+            </SplitPane>
+         </items>
+      </SplitPane>
+   </center>
+</BorderPane>

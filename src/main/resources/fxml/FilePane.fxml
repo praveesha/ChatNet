@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.FileController">
+   <top>
+      <!-- Connection Panel -->
+      <VBox spacing="10" styleClass="connection-panel">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10" />
+         </padding>
+         
+         <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="File Server:" styleClass="section-header" />
+            <TextField fx:id="serverAddressField" text="localhost" prefWidth="120" />
+            <Label text="Port:" />
+            <TextField fx:id="serverPortField" text="8081" prefWidth="60" />
+            <Button fx:id="connectButton" text="Connect" styleClass="success-button" onAction="#connectToFileServer" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="connectionStatusLabel" text="🔴 Disconnected" 
+                  styleClass="connection-status" />
+         </HBox>
+      </VBox>
+   </top>
+   
+   <center>
+      <SplitPane dividerPositions="0.5" orientation="HORIZONTAL">
+         <items>
+            <!-- Server Files Panel -->
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="10" right="5" bottom="10" left="10" />
+               </padding>
+               
+               <HBox spacing="10" alignment="CENTER_LEFT">
+                  <Label text="Server Files:" styleClass="section-header" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="refreshButton" text="🔄 Refresh" styleClass="info-button" onAction="#refreshServerFiles" />
+               </HBox>
+               
+               <ListView fx:id="serverFilesListView" styleClass="file-list" VBox.vgrow="ALWAYS" />
+               
+               <HBox spacing="10" alignment="CENTER">
+                  <Button fx:id="downloadButton" text="⬇ Download" styleClass="primary-button" onAction="#downloadFile" />
+               </HBox>
+            </VBox>
+            
+            <!-- Local Files Panel -->
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="10" right="10" bottom="10" left="5" />
+               </padding>
+               
+               <Label text="Local Files:" styleClass="section-header" />
+               
+               <ListView fx:id="localFilesListView" styleClass="file-list" VBox.vgrow="ALWAYS" />
+               
+               <HBox spacing="10" alignment="CENTER">
+                  <Button fx:id="uploadButton" text="⬆ Upload" styleClass="primary-button" onAction="#uploadFile" />
+               </HBox>
+            </VBox>
+         </items>
+      </SplitPane>
+   </center>
+   
+   <bottom>
+      <!-- Transfer Progress Panel -->
+      <VBox spacing="8" styleClass="progress-panel">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10" />
+         </padding>
+         
+         <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Transfer Status:" styleClass="section-header" />
+            <Label fx:id="transferStatusLabel" text="Ready" styleClass="transfer-status" />
+         </HBox>
+         
+         <ProgressBar fx:id="transferProgressBar" prefWidth="Infinity" styleClass="transfer-progress" />
+         
+         <ScrollPane fitToWidth="true" prefHeight="100">
+            <TextArea fx:id="transferLogArea" editable="false" wrapText="true" 
+                     styleClass="transfer-log" prefHeight="80" />
+         </ScrollPane>
+      </VBox>
+   </bottom>
+</BorderPane>

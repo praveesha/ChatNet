@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.MainController">
+   <center>
+      <TabPane fx:id="mainTabPane" styleClass="main-tab-pane" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <!-- Chat Tab - Keep working functionality as-is -->
+            <Tab fx:id="chatTab" text="💬 Chat">
+               <content>
+                  <VBox spacing="10">
+                     <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+                     <Label text="Chat functionality is working - do not modify" style="-fx-font-weight: bold; -fx-text-fill: green;" />
+                     <Label text="This tab maintains existing ChatClient integration" />
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <!-- File Transfer Tab -->
+            <Tab fx:id="fileTab" text="📁 Files">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+                     
+                     <!-- Connection Panel -->
+                     <VBox spacing="10">
+                        <Label text="File Server Connection:" style="-fx-font-weight: bold;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <Label text="Host:" />
+                           <TextField fx:id="fileServerHost" prefWidth="120" />
+                           <Label text="Port:" />
+                           <TextField fx:id="fileServerPort" prefWidth="80" />
+                           <Button fx:id="connectFileButton" text="Connect" onAction="#connectToFileServer" />
+                           <Button fx:id="disconnectFileButton" text="Disconnect" onAction="#disconnectFromFileServer" />
+                        </HBox>
+                        <Label fx:id="fileStatusLabel" text="Not connected" />
+                        <ProgressBar fx:id="fileProgressBar" prefWidth="300" progress="0" />
+                     </VBox>
+                     
+                     <Separator />
+                     
+                     <!-- File Operations Panel -->
+                     <HBox spacing="15">
+                        <!-- Server Files -->
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                           <Label text="Server Files:" style="-fx-font-weight: bold;" />
+                           <ListView fx:id="serverFilesList" prefHeight="200" />
+                           <HBox spacing="10">
+                              <Button fx:id="refreshFilesButton" text="🔄 Refresh" onAction="#refreshServerFiles" />
+                              <Button fx:id="downloadFileButton" text="📥 Download" onAction="#downloadFile" />
+                           </HBox>
+                        </VBox>
+                        
+                        <!-- Local Files -->
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                           <Label text="Local Files:" style="-fx-font-weight: bold;" />
+                           <ListView fx:id="localFilesList" prefHeight="200" />
+                           <Button fx:id="uploadFileButton" text="📤 Upload File" onAction="#uploadFile" />
+                        </VBox>
+                     </HBox>
+                     
+                     <!-- File Transfer Log -->
+                     <VBox spacing="10">
+                        <Label text="Transfer Log:" style="-fx-font-weight: bold;" />
+                        <TextArea fx:id="fileLogArea" prefHeight="100" editable="false" />
+                     </VBox>
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <!-- UDP Status/Discovery Tab -->
+            <Tab fx:id="statusTab" text="🌐 UDP">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+                     
+                     <!-- UDP Configuration -->
+                     <VBox spacing="10">
+                        <Label text="UDP Configuration:" style="-fx-font-weight: bold;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <Label text="Listen Port:" />
+                           <TextField fx:id="udpListenPort" prefWidth="80" />
+                           <Button fx:id="startUdpButton" text="🔊 Start Listening" onAction="#startUdpListening" />
+                           <Button fx:id="stopUdpButton" text="🔇 Stop Listening" onAction="#stopUdpListening" />
+                        </HBox>
+                        <Label fx:id="udpStatusLabel" text="Not listening" />
+                     </VBox>
+                     
+                     <Separator />
+                     
+                     <!-- Peer Discovery -->
+                     <VBox spacing="10">
+                        <Label text="Peer Discovery:" style="-fx-font-weight: bold;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <Button fx:id="startDiscoveryButton" text="🔍 Start Discovery" onAction="#startPeerDiscovery" />
+                           <Button fx:id="stopDiscoveryButton" text="🛑 Stop Discovery" onAction="#stopPeerDiscovery" />
+                           <Label fx:id="peersCountLabel" text="Peers: 0" />
+                        </HBox>
+                        
+                        <HBox spacing="15">
+                           <!-- Discovered Peers -->
+                           <VBox spacing="10" HBox.hgrow="ALWAYS">
+                              <Label text="Discovered Peers:" style="-fx-font-weight: bold;" />
+                              <ListView fx:id="peersListView" prefHeight="150" />
+                           </VBox>
+                           
+                           <!-- UDP Log -->
+                           <VBox spacing="10" HBox.hgrow="ALWAYS">
+                              <Label text="UDP Log:" style="-fx-font-weight: bold;" />
+                              <TextArea fx:id="udpLogArea" prefHeight="150" editable="false" />
+                           </VBox>
+                        </HBox>
+                     </VBox>
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <!-- NIO Echo Tab -->
+            <Tab fx:id="nioTab" text="⚡ NIO">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+                     
+                     <!-- NIO Connection -->
+                     <VBox spacing="10">
+                        <Label text="NIO Server Connection:" style="-fx-font-weight: bold;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <Label text="Host:" />
+                           <TextField fx:id="nioServerHost" prefWidth="120" />
+                           <Label text="Port:" />
+                           <TextField fx:id="nioServerPort" prefWidth="80" />
+                           <Button fx:id="connectNioButton" text="Connect" onAction="#connectToNioServer" />
+                           <Button fx:id="disconnectNioButton" text="Disconnect" onAction="#disconnectFromNioServer" />
+                        </HBox>
+                        <Label fx:id="nioStatusLabel" text="Not connected" />
+                     </VBox>
+                     
+                     <Separator />
+                     
+                     <!-- Echo Testing -->
+                     <VBox spacing="10">
+                        <Label text="Echo Testing:" style="-fx-font-weight: bold;" />
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <Label text="Message:" />
+                           <TextField fx:id="echoMessageField" HBox.hgrow="ALWAYS" />
+                           <Button fx:id="sendEchoButton" text="📤 Send Echo" onAction="#sendEchoMessage" />
+                           <Button fx:id="measureLatencyButton" text="⏱ Measure Latency" onAction="#measureLatency" />
+                        </HBox>
+                        <Label fx:id="latencyLabel" text="Latency: --" />
+                     </VBox>
+                     
+                     <!-- NIO Log -->
+                     <VBox spacing="10">
+                        <Label text="NIO Log:" style="-fx-font-weight: bold;" />
+                        <TextArea fx:id="nioLogArea" prefHeight="200" editable="false" />
+                     </VBox>
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <!-- Statistics Tab -->
+            <Tab fx:id="statsTab" text="📊 Stats">
+               <content>
+                  <VBox spacing="15">
+                     <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
+                     
+                     <!-- Statistics Controls -->
+                     <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="refreshStatsButton" text="🔄 Refresh" onAction="#refreshStatistics" />
+                        <Button fx:id="resetStatsButton" text="🗑 Reset" onAction="#resetStatistics" />
+                     </HBox>
+                     
+                     <Separator />
+                     
+                     <!-- Statistics Display -->
+                     <GridPane hgap="20" vgap="15">
+                        <columnConstraints>
+                           <ColumnConstraints hgrow="NEVER" minWidth="150" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="150" />
+                           <ColumnConstraints hgrow="NEVER" minWidth="150" />
+                        </columnConstraints>
+                        
+                        <!-- Row 0 -->
+                        <Label fx:id="messageCountLabel" text="Messages: 0" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;" />
+                        <Label fx:id="connectionUptimeLabel" text="Uptime: 0:00" GridPane.columnIndex="1" GridPane.rowIndex="0" style="-fx-font-weight: bold;" />
+                        <Label fx:id="bytesSentLabel" text="Bytes Sent: 0" GridPane.columnIndex="2" GridPane.rowIndex="0" style="-fx-font-weight: bold;" />
+                        
+                        <!-- Row 1 -->
+                        <Label fx:id="bytesReceivedLabel" text="Bytes Received: 0" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;" />
+                        <Label fx:id="fileTransfersLabel" text="File Transfers: 0" GridPane.columnIndex="1" GridPane.rowIndex="1" style="-fx-font-weight: bold;" />
+                        <Label fx:id="discoveredPeersLabel" text="Discovered Peers: 0" GridPane.columnIndex="2" GridPane.rowIndex="1" style="-fx-font-weight: bold;" />
+                        
+                        <!-- Row 2 -->
+                        <Label fx:id="nioLatencyLabel" text="NIO Messages: 0" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold;" />
+                     </GridPane>
+                     
+                     <!-- Statistics Log -->
+                     <VBox spacing="10">
+                        <Label text="Statistics Log:" style="-fx-font-weight: bold;" />
+                        <TextArea fx:id="statsLogArea" prefHeight="200" editable="false" />
+                     </VBox>
+                  </VBox>
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+   
+   <bottom>
+      <HBox styleClass="status-bar" spacing="10" alignment="CENTER_LEFT">
+         <padding><Insets top="5" right="10" bottom="5" left="10" /></padding>
+         <Label text="TeamSync v1.0" />
+         <Separator orientation="VERTICAL" />
+         <Label text="All modules integrated" />
+      </HBox>
+   </bottom>
+</BorderPane>

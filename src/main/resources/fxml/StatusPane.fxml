@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.StatusController">
+   <top>
+      <!-- Control Panel -->
+      <VBox spacing="10" styleClass="control-panel">
+         <padding>
+            <Insets top="10" right="10" bottom="10" left="10" />
+         </padding>
+         
+         <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Peer Discovery:" styleClass="section-header" />
+            <Button fx:id="startDiscoveryButton" text="▶ Start Discovery" styleClass="success-button" onAction="#startPeerDiscovery" />
+            <Button fx:id="stopDiscoveryButton" text="⏸ Stop Discovery" styleClass="danger-button" onAction="#stopPeerDiscovery" />
+            <Button fx:id="refreshButton" text="🔄 Refresh" styleClass="info-button" onAction="#refreshStatus" />
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <ProgressIndicator fx:id="heartbeatIndicator" prefWidth="20" prefHeight="20" />
+         </HBox>
+      </VBox>
+   </top>
+   
+   <center>
+      <SplitPane dividerPositions="0.7" orientation="HORIZONTAL">
+         <items>
+            <!-- Peers Table -->
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="10" right="5" bottom="10" left="10" />
+               </padding>
+               
+               <Label text="Discovered Peers:" styleClass="section-header" />
+               
+               <TableView fx:id="peersTableView" styleClass="peers-table" VBox.vgrow="ALWAYS">
+                  <columns>
+                     <TableColumn fx:id="peerNameColumn" text="Peer Name" prefWidth="120" />
+                     <TableColumn fx:id="peerAddressColumn" text="IP Address" prefWidth="120" />
+                     <TableColumn fx:id="peerStatusColumn" text="Status" prefWidth="80" />
+                     <TableColumn fx:id="lastSeenColumn" text="Last Seen" prefWidth="100" />
+                  </columns>
+               </TableView>
+            </VBox>
+            
+            <!-- Status Panel -->
+            <VBox spacing="15">
+               <padding>
+                  <Insets top="10" right="10" bottom="10" left="5" />
+               </padding>
+               
+               <!-- Summary Statistics -->
+               <VBox spacing="8">
+                  <Label text="Summary:" styleClass="section-header" />
+                  
+                  <GridPane hgap="10" vgap="8" styleClass="stats-grid">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="80" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     
+                     <Label text="Total Peers:" GridPane.columnIndex="0" GridPane.rowIndex="0" 
+                           styleClass="stat-label" />
+                     <Label fx:id="totalPeersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0" 
+                           styleClass="stat-value" />
+                     
+                     <Label text="Active:" GridPane.columnIndex="0" GridPane.rowIndex="1" 
+                           styleClass="stat-label" />
+                     <Label fx:id="activePeersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" 
+                           styleClass="stat-value success" />
+                     
+                     <Label text="Last Beat:" GridPane.columnIndex="0" GridPane.rowIndex="2" 
+                           styleClass="stat-label" />
+                     <Label fx:id="lastHeartbeatLabel" text="Never" GridPane.columnIndex="1" GridPane.rowIndex="2" 
+                           styleClass="stat-value info" />
+                  </GridPane>
+               </VBox>
+               
+               <Separator />
+               
+               <!-- Discovery Log -->
+               <VBox VBox.vgrow="ALWAYS">
+                  <Label text="Discovery Log:" styleClass="section-header" />
+                  <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets top="5" />
+                     </VBox.margin>
+                     <TextArea fx:id="discoveryLogArea" editable="false" wrapText="true" 
+                              styleClass="discovery-log" prefHeight="200" />
+                  </ScrollPane>
+               </VBox>
+            </VBox>
+         </items>
+      </SplitPane>
+   </center>
+</BorderPane>

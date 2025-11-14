@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.ChatController">
+   <center>
+      <SplitPane dividerPositions="0.75" styleClass="chat-split-pane">
+         <items>
+            <!-- Main Chat Area -->
+            <VBox spacing="10">
+               <padding>
+                  <Insets top="10" right="10" bottom="10" left="10" />
+               </padding>
+               
+               <!-- Chat Messages Area -->
+               <VBox VBox.vgrow="ALWAYS">
+                  <Label text="Chat Messages:" styleClass="section-header" />
+                  <TextArea fx:id="chatLogArea" editable="false" wrapText="true" 
+                           styleClass="chat-log" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets top="5" />
+                     </VBox.margin>
+                  </TextArea>
+               </VBox>
+               
+               <!-- Message Input Area -->
+               <HBox spacing="10" alignment="CENTER_LEFT">
+                  <TextField fx:id="messageField" promptText="Type your message here..." 
+                            HBox.hgrow="ALWAYS" styleClass="message-input" onAction="#sendMessage" />
+                  <Button fx:id="sendButton" text="Send" defaultButton="true" 
+                         styleClass="primary-button" onAction="#sendMessage" />
+               </HBox>
+            </VBox>
+            
+            <!-- Side Panel -->
+            <VBox spacing="15">
+               <padding>
+                  <Insets top="10" right="10" bottom="10" left="10" />
+               </padding>
+               
+               <!-- Connection Controls -->
+               <VBox spacing="8">
+                  <Label text="Connection:" styleClass="section-header" />
+                  
+                  <GridPane hgap="5" vgap="5">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="60" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                     </columnConstraints>
+                     
+                     <Label text="Server:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                     <TextField fx:id="serverAddressField" text="localhost" 
+                               GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                     
+                     <Label text="Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                     <TextField fx:id="serverPortField" text="8080" 
+                               GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  </GridPane>
+                  
+                  <HBox spacing="5" alignment="CENTER">
+                     <Button fx:id="connectButton" text="Connect" styleClass="success-button" onAction="#connectToServer" />
+                     <Button fx:id="disconnectButton" text="Disconnect" styleClass="danger-button" onAction="#disconnectFromServer" />
+                  </HBox>
+                  
+                  <Label fx:id="connectionStatusLabel" text="🔴 Disconnected" 
+                        styleClass="connection-status" />
+               </VBox>
+               
+               <!-- Online Users -->
+               <VBox VBox.vgrow="ALWAYS">
+                  <Label text="Online Users:" styleClass="section-header" />
+                  <ListView fx:id="onlineUsersListView" styleClass="users-list">
+                     <VBox.margin>
+                        <Insets top="5" />
+                     </VBox.margin>
+                  </ListView>
+               </VBox>
+            </VBox>
+         </items>
+      </SplitPane>
+   </center>
+</BorderPane>

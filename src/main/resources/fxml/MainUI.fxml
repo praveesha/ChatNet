@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ui.MainController">
+   <center>
+      <TabPane fx:id="mainTabPane" styleClass="main-tab-pane" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <!-- Chat Tab -->
+            <Tab fx:id="chatTab" text="💬 Chat">
+               <content>
+                  <fx:include fx:id="chatPane" source="ChatPane.fxml" />
+               </content>
+            </Tab>
+            
+            <!-- File Transfer Tab -->
+            <Tab fx:id="fileTab" text="📁 Files">
+               <content>
+                  <fx:include fx:id="filePane" source="FilePane.fxml" />
+               </content>
+            </Tab>
+            
+            <!-- Connection Status Tab -->
+            <Tab fx:id="statusTab" text="🌐 Status">
+               <content>
+                  <fx:include fx:id="statusPane" source="StatusPane.fxml" />
+               </content>
+            </Tab>
+            
+            <!-- Statistics Tab -->
+            <Tab fx:id="statsTab" text="📊 Stats">
+               <content>
+                  <fx:include fx:id="statsPane" source="StatsPane.fxml" />
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+   
+   <bottom>
+      <HBox styleClass="status-bar" spacing="10" alignment="CENTER_LEFT">
+         <padding>
+            <Insets top="5" right="10" bottom="5" left="10" />
+         </padding>
+         
+         <Label text="TeamSync v1.0" styleClass="app-version" />
+         <Separator orientation="VERTICAL" />
+         <Label text="Ready" styleClass="status-text" />
+         
+         <Region HBox.hgrow="ALWAYS" />
+         
+         <Label text="🕐" styleClass="status-icon" />
+         <Label text="12:00:00" styleClass="time-display" />
+      </HBox>
+   </bottom>
+</BorderPane>
