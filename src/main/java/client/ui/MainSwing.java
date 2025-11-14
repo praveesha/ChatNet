@@ -548,8 +548,6 @@ public class MainSwing extends JFrame {
     
     private void shutdown() {
         System.out.println("🛑 Shutting down TeamSync application...");
-        System.out.println("🔍 Shutdown called from: ");
-        Thread.dumpStack();
         
         if (backgroundExecutor != null) {
             backgroundExecutor.shutdown();
